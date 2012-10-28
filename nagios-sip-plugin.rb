@@ -181,7 +181,7 @@ end  # module NagiosSipPlugin
 def show_help
   puts <<-END_HELP
 
-Usage mode:    nagios_sip_plugin.rb [OPTIONS]
+Usage mode:    nagios-sip-plugin.rb [OPTIONS]
 
   OPTIONS:
     -t (tcp|udp)     :    Protocol to use (default 'udp').
@@ -194,13 +194,13 @@ Usage mode:    nagios_sip_plugin.rb [OPTIONS]
     -T SECONDS       :    Timeout in seconds (default '2').
 
   Homepage:
-    http://dev.sipdoc.net/projects/sip-stuff/wiki/NagiosSIPplugin
+    https://github.com/ibc/nagios-sip-plugin
     
 END_HELP
 end
 
 def suggest_help
-  puts "\nGet help by running:    ruby nagios_sip_plugin.rb -h\n"
+  puts "\nGet help by running:    ruby nagios-sip-plugin.rb -h\n"
 end
 
 def log_ok(text)
