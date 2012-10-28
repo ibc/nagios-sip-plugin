@@ -6,7 +6,7 @@ A plugin for [Nagios](http://www.nagios.org/) for checking the status of a SIP s
 
 ## Features
 
-* SIP UDP and TCP transport protocols.
+* SIP UDP, TCP and TLS transport protocols.
 * Customizable parameters (From URI, Request URI, server address, local UDP port, timeout internal).
 * The replied status code can be matched against an expected value to be considered as valid.
 
@@ -48,10 +48,12 @@ WARNING:Received a 403 but 200 was required
 
 The plugin returns `2` value in the following cases:
 
-* No response at all is received from the server in the configured `timeout` interval (parameter `-T`)
+* No response at all is received from the server in the configured `timeout` interval (`-T` parameter)
 * The TCP connection failed.
 * An ICMP "port unreachable" message has been received in SIP UDP.
 * Error resolving the server IP (when a hostname is used).
+* TLS verification error when `-vt` parameter is set and there is not a valid PEM file in the given CA path (`-ca` parameter).
+* Other TLS errors.
 
 It also prints to `stdout` (depending on the exact error):
 ```
@@ -78,6 +80,8 @@ Usage mode:    nagios-sip-plugin.rb [OPTIONS]
     -f FROM_URI      :    From URI (default 'sip:nagios@SERVER_IP').
     -c SIP_CODE      :    Expected status code (i.e: '200'). If null then any code is valid.
     -T SECONDS       :    Timeout in seconds (default '2').
+    -vt              :    Verify server's TLS certificate when using SIP TLS (default false).
+    -ca CA_PATH      :    Directory with public PEM files for validating server's TLS certificate (default '/etc/ssl/certs/').
 
   Homepage:
     https://github.com/ibc/nagios-sip-plugin
@@ -101,4 +105,3 @@ Usage mode:    nagios-sip-plugin.rb [OPTIONS]
 ## TODO
 
 * Add retransmissions mechanism for SIP UDP transport.
-* Add SIP over TLS.

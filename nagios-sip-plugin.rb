@@ -21,9 +21,6 @@ require "socket"
 require "timeout"
 require "openssl"
 
-# This is the correct location for certs on a Debian system
-# Please change it if necessary
-CA_PATH = "/etc/ssl/certs"
 
 module NagiosSipPlugin
 
@@ -76,6 +73,8 @@ module NagiosSipPlugin
       @request = get_request()
       @expected_status_code = options[:expected_status_code]
       @timeout = options[:timeout]
+      @ca_path = options[:ca_path]
+      @verify_tls = options[:verify_tls]
     end
     
     def get_local_ip
@@ -110,8 +109,12 @@ module NagiosSipPlugin
           Timeout::timeout(@timeout) {
             sock = TCPSocket.new(@server_address, @server_port, @local_ip)
             ssl_context = OpenSSL::SSL::SSLContext.new
-            ssl_context.verify_mode = OpenSSL::SSL::VERIFY_PEER
-            ssl_context.ca_path = CA_PATH
+            if @verify_tls
+              ssl_context.verify_mode = OpenSSL::SSL::VERIFY_PEER
+              ssl_context.ca_path =  @ca_path
+            else
+              ssl_context.verify_mode = OpenSSL::SSL::VERIFY_NONE
+            end
             ssl_context.ssl_version = :TLSv1
 
             @io = OpenSSL::SSL::SSLSocket.new(sock, ssl_context)
@@ -212,6 +215,8 @@ Usage mode:    nagios-sip-plugin.rb [OPTIONS]
     -f FROM_URI      :    From URI (default 'sip:nagios@SERVER_IP').
     -c SIP_CODE      :    Expected status code (i.e: '200'). If null then any code is valid.
     -T SECONDS       :    Timeout in seconds (default '2').
+    -vt              :    Verify server's TLS certificate when using SIP TLS (default false).
+    -ca CA_PATH      :    Directory with public PEM files for validating server's TLS certificate (default '/etc/ssl/certs/').
 
   Homepage:
     https://github.com/ibc/nagios-sip-plugin
@@ -268,6 +273,8 @@ from_uri = args[/-f ([^\s]*)/,1] ||"sip:nagios@" + server_address
 expected_status_code = args[/-c ([^\s]*)/,1] || nil
 timeout = args[/-T ([^\s]*)/,1] || 2
 timeout = timeout.to_i
+verify_tls = args =~ /-vt/ ? true : false
+ca_path = args[/-ca ([^\s]*)/,1] || "/etc/ssl/certs/"
 
 # Check parameters.
 log_unknown "transport protocol (-t) must be 'tls', 'udp', or 'tcp'"  unless transport =~ /^(tls|udp|tcp)$/
@@ -285,7 +292,9 @@ begin
     :ruri => ruri,
     :from_uri => from_uri,
     :expected_status_code => expected_status_code,
-    :timeout => timeout
+    :timeout => timeout,
+    :verify_tls => verify_tls,
+    :ca_path => ca_path
   })
   options.send
   status_code = options.receive
