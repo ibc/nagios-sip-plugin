@@ -19,7 +19,11 @@
 
 require "socket"
 require "timeout"
+require "openssl"
 
+# This is the correct location for certs on a Debian system
+# Please change it if necessary
+CA_PATH = "/etc/ssl/certs"
 
 module NagiosSipPlugin
 
@@ -102,6 +106,18 @@ module NagiosSipPlugin
           Timeout::timeout(@timeout) {
             @io = TCPSocket.new(@server_address, @server_port, @local_ip)
           }
+        when "tls"
+          Timeout::timeout(@timeout) {
+            sock = TCPSocket.new(@server_address, @server_port, @local_ip)
+            ssl_context = OpenSSL::SSL::SSLContext.new
+            ssl_context.verify_mode = OpenSSL::SSL::VERIFY_PEER
+            ssl_context.ca_path = CA_PATH
+            ssl_context.ssl_version = :TLSv1
+
+            @io = OpenSSL::SSL::SSLSocket.new(sock, ssl_context)
+            @io.sync_close = true
+            @io.connect
+          }
         end
       rescue Timeout::Error => e
         raise ConnectTimeout, "Timeout when connecting the server via #{@transport.upcase} (#{e.class}: #{e.message})"
@@ -117,7 +133,11 @@ module NagiosSipPlugin
       end
       begin
         Timeout::timeout(@timeout) {
-          @io.send(@request,0)
+          if @transport == "tls"
+            @io.syswrite(@request)
+          else
+            @io.send(@request,0)
+          end
         }
       rescue Timeout::Error => e
         raise RequestTimeout, "Timeout sending the request via #{@transport.upcase} (#{e.class}: #{e.message}"
@@ -184,7 +204,7 @@ def show_help
 Usage mode:    nagios-sip-plugin.rb [OPTIONS]
 
   OPTIONS:
-    -t (tcp|udp)     :    Protocol to use (default 'udp').
+    -t (tls|tcp|udp) :    Protocol to use (default 'udp').
     -s SERVER_IP     :    IP or domain of the server (required).
     -p SERVER_PORT   :    Port of the server (default '5060').
     -lp LOCAL_PORT   :    Local port from which UDP request will be sent. Just valid for SIP UDP (default random).
@@ -250,7 +270,7 @@ timeout = args[/-T ([^\s]*)/,1] || 2
 timeout = timeout.to_i
 
 # Check parameters.
-log_unknown "transport protocol (-t) must be 'udp' or 'tcp'"  unless transport =~ /^(udp|tcp)$/
+log_unknown "transport protocol (-t) must be 'tls', 'udp', or 'tcp'"  unless transport =~ /^(tls|udp|tcp)$/
 log_unknown "server address (-s) is required"  unless server_address
 log_unknown "expected status code (-c) must be [123456]XX"  unless expected_status_code =~ /^[123456][0-9]{2}$/ or not expected_status_code
 log_unknown "timeout (-T) must be greater than 0"  unless timeout > 0
