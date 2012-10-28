@@ -65,9 +65,9 @@ CRITICAL:Timeout when connecting the server via TCP (Timeout::Error: execution e
 ### Commandline options
 
 ```
-~$ ./nagios_sip_plugin.rb --help
+~$ ./nagios-sip-plugin.rb --help
 
-Usage mode:    nagios_sip_plugin.rb [OPTIONS]
+Usage mode:    nagios-sip-plugin.rb [OPTIONS]
 
   OPTIONS:
     -t (tcp|udp)     :    Protocol to use (default 'udp').
@@ -80,16 +80,17 @@ Usage mode:    nagios_sip_plugin.rb [OPTIONS]
     -T SECONDS       :    Timeout in seconds (default '2').
 
   Homepage:
-    http://dev.sipdoc.net/projects/sip-stuff/wiki/NagiosSIPplugin
+    https://github.com/ibc/nagios-sip-plugin
 ```
 
 
 ### Usage example
 
 ```
-~$ nagios_sip_plugin.rb -t udp -s 9.9.9.9 -p 5060 -lp 15060 -r "sip:9999@myserver.org" -f "sip:nagios@myserver.org" -c 200 -T 3
-
-~$ nagios_sip_plugin.rb -t tcp -s 9.9.9.9 -p 6060
+~$ nagios-sip-plugin.rb -t udp -s 9.9.9.9 -p 5060 -lp 15060 -r "sip:9999@myserver.org" -f "sip:nagios@myserver.org" -c 200 -T 3
+```
+```
+~$ nagios-sip-plugin.rb -t tcp -s 9.9.9.9 -p 6060
 ```
 
 ## Dependencies
@@ -97,7 +98,7 @@ Usage mode:    nagios_sip_plugin.rb [OPTIONS]
 * Ruby 1.8 or 1.9.
 
 
-## ToDo
+## TODO
 
 * Add retransmissions mechanism for SIP UDP transport.
 * Add SIP over TLS.
