@@ -71,7 +71,6 @@ module NagiosSipPlugin
       @server_port = options[:server_port]
       @transport = options[:transport]
       @local_ip = options[:local_ip] || get_local_ip()
-      @local_port = options[:local_port]
       @from_uri = options[:from_uri]
       @ruri = options[:ruri]
       @request = get_request()
@@ -102,7 +101,7 @@ module NagiosSipPlugin
         when "udp"
           @io = UDPSocket.new
           Timeout::timeout(@timeout) {
-            @io.bind(@local_ip, @local_port)
+            @io.bind(@local_ip, 0)
             @io.connect(@server_address, @server_port)
           }
         when "tcp"
@@ -163,7 +162,7 @@ module NagiosSipPlugin
     def get_request
       headers = <<-END_HEADERS
         OPTIONS #{@ruri} SIP/2.0
-        Via: SIP/2.0/#{@transport.upcase} #{@local_ip}#{":#{@local_port}" if @local_port != 0};rport;branch=#{Utils.generate_branch}
+        Via: SIP/2.0/#{@transport.upcase} #{@local_ip};rport;branch=#{Utils.generate_branch}
         Max-Forwards: 5
         To: <#{@ruri}>
         From: <#{@from_uri}>;tag=#{Utils.generate_tag}
@@ -214,7 +213,6 @@ Usage mode:    nagios-sip-plugin.rb [OPTIONS]
     -t (tls|tcp|udp) :    Protocol to use (default 'udp').
     -s SERVER_IP     :    IP or domain of the server (required).
     -p SERVER_PORT   :    Port of the server (default '5060').
-    -lp LOCAL_PORT   :    Local port from which UDP request will be sent. Just valid for SIP UDP (default random).
     -r REQUEST_URI   :    Request URI (default 'sip:ping@SERVER_IP:SERVER_PORT').
     -f FROM_URI      :    From URI (default 'sip:nagios@SERVER_IP').
     -c SIP_CODE      :    Expected status code (i.e: '200'). If null then any code is valid.
@@ -270,8 +268,6 @@ transport = args[/-t ([^\s]*)/,1] || "udp"
 server_address = args[/-s ([^\s]*)/,1] || nil
 server_port = args[/-p ([^\s]*)/,1] || 5060
 server_port = server_port.to_i
-local_port = args[/-lp ([^\s]*)/,1] || 0
-local_port = local_port.to_i
 ruri = args[/-r ([^\s]*)/,1] || "sip:ping@" + server_address + (server_port ? ":" + server_port.to_s : "")
 from_uri = args[/-f ([^\s]*)/,1] ||"sip:nagios@" + server_address
 expected_status_code = args[/-c ([^\s]*)/,1] || nil
@@ -292,7 +288,6 @@ begin
   options = OptionsRequest.new({
     :server_address => server_address,
     :server_port => server_port,
-    :local_port => local_port,
     :transport => transport,
     :ruri => ruri,
     :from_uri => from_uri,

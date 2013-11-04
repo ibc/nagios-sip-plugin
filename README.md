@@ -75,7 +75,6 @@ Usage mode:    nagios-sip-plugin.rb [OPTIONS]
     -t (tls|tcp|udp)     :    Protocol to use (default 'udp').
     -s SERVER_IP     :    IP or domain of the server (required).
     -p SERVER_PORT   :    Port of the server (default '5060').
-    -lp LOCAL_PORT   :    Local port from which UDP request will be sent. Just valid for SIP UDP (default random).
     -r REQUEST_URI   :    Request URI (default 'sip:ping@SERVER_IP:SERVER_PORT').
     -f FROM_URI      :    From URI (default 'sip:nagios@SERVER_IP').
     -c SIP_CODE      :    Expected status code (i.e: '200'). If null then any code is valid.
@@ -91,7 +90,7 @@ Usage mode:    nagios-sip-plugin.rb [OPTIONS]
 ### Usage example
 
 ```
-~$ nagios-sip-plugin.rb -t udp -s 9.9.9.9 -p 5060 -lp 15060 -r "sip:9999@myserver.org" -f "sip:nagios@myserver.org" -c 200 -T 3
+~$ nagios-sip-plugin.rb -t udp -s 9.9.9.9 -p 5060 -r "sip:9999@myserver.org" -f "sip:nagios@myserver.org" -c 200 -T 3
 ```
 ```
 ~$ nagios-sip-plugin.rb -t tcp -s 9.9.9.9 -p 6060
