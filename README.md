@@ -72,7 +72,7 @@ CRITICAL:Timeout when connecting the server via TCP (Timeout::Error: execution e
 Usage mode:    nagios-sip-plugin.rb [OPTIONS]
 
   OPTIONS:
-    -t (tcp|udp)     :    Protocol to use (default 'udp').
+    -t (tls|tcp|udp)     :    Protocol to use (default 'udp').
     -s SERVER_IP     :    IP or domain of the server (required).
     -p SERVER_PORT   :    Port of the server (default '5060').
     -lp LOCAL_PORT   :    Local port from which UDP request will be sent. Just valid for SIP UDP (default random).

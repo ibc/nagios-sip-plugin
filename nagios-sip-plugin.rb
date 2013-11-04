@@ -19,7 +19,11 @@
 
 require "socket"
 require "timeout"
-require "openssl"
+begin
+  require "openssl"
+rescue ::LoadError
+  #puts "WARNING: Ruby OpenSSL non installed, cannot use SIP TLS transport"
+end
 
 
 module NagiosSipPlugin
@@ -278,6 +282,7 @@ ca_path = args[/-ca ([^\s]*)/,1] || "/etc/ssl/certs/"
 
 # Check parameters.
 log_unknown "transport protocol (-t) must be 'tls', 'udp', or 'tcp'"  unless transport =~ /^(tls|udp|tcp)$/
+log_unknown "'tls' transport not supported (Ruby OpenSSL not installed)"  if (transport == "tls" and not defined? ::OpenSSL)
 log_unknown "server address (-s) is required"  unless server_address
 log_unknown "expected status code (-c) must be [123456]XX"  unless expected_status_code =~ /^[123456][0-9]{2}$/ or not expected_status_code
 log_unknown "timeout (-T) must be greater than 0"  unless timeout > 0
