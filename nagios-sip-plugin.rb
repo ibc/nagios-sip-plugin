@@ -1,17 +1,17 @@
 #!/usr/bin/env ruby
 
 #     Copyright (C) 2010  Iñaki Baz Castillo <ibc@aliax.net>
-# 
+#
 #     This program is free software; you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
 #     the Free Software Foundation; either version 2 of the License, or
 #     (at your option) any later version.
-# 
+#
 #     This program is distributed in the hope that it will be useful,
 #     but WITHOUT ANY WARRANTY; without even the implied warranty of
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #     GNU General Public License for more details.
-# 
+#
 #     You should have received a copy of the GNU General Public License
 #     along with this program; if not, write to the Free Software
 #     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -25,7 +25,6 @@ rescue ::LoadError
   #puts "WARNING: Ruby OpenSSL non installed, cannot use SIP TLS transport"
 end
 
-
 module NagiosSipPlugin
 
   # Custom errors.
@@ -36,36 +35,36 @@ module NagiosSipPlugin
   class NonExpectedStatusCode < StandardError ; end
   class WrongResponse < StandardError ; end
 
-  
+
   class Utils
-  
+
     def self.random_string(length=6, chars="abcdefghjkmnpqrstuvwxyz0123456789")
       string = ''
       length.downto(1) { |i| string << chars[rand(chars.length - 1)] }
       string
     end
-    
+
     def self.generate_tag()
       random_string(8)
     end
-    
+
     def self.generate_branch()
       'z9hG4bK' + random_string(8)
     end
-    
+
     def self.generate_callid()
       random_string(10)
     end
-    
+
     def self.generate_cseq()
       rand(999)
     end
-    
+
   end  # class Utils
 
 
   class Request
-    
+
     def initialize(options = {})
       @server_address = options[:server_address]
       @server_port = options[:server_port]
@@ -79,7 +78,7 @@ module NagiosSipPlugin
       @ca_path = options[:ca_path]
       @verify_tls = options[:verify_tls]
     end
-    
+
     def get_local_ip
       orig, Socket.do_not_reverse_lookup = Socket.do_not_reverse_lookup, true
       UDPSocket.open do |s|
@@ -94,7 +93,7 @@ module NagiosSipPlugin
       end
     end
     private :get_local_ip
-    
+
     def connect
       begin
         case @transport
@@ -132,7 +131,7 @@ module NagiosSipPlugin
       end
     end
     private :connect
-    
+
     def send
       if ! connect
         return false
@@ -151,14 +150,14 @@ module NagiosSipPlugin
         raise TransportError, "Couldn't send the request via #{@transport.upcase} (#{e.class}: #{e.message}"
       end
     end
-    
+
   end  # class Request
-  
-  
+
+
   class OptionsRequest < Request
-    
+
     attr_reader :request
-    
+
     def get_request
       headers = <<-END_HEADERS
         OPTIONS #{@ruri} SIP/2.0
@@ -198,9 +197,9 @@ module NagiosSipPlugin
       return status_code
 
     end  # def receive
-  
+
   end  # class OptionsRequest
-  
+
 end  # module NagiosSipPlugin
 
 
@@ -222,12 +221,16 @@ Usage mode:    nagios-sip-plugin.rb [OPTIONS]
 
   Homepage:
     https://github.com/ibc/nagios-sip-plugin
-    
+
 END_HELP
 end
 
 def suggest_help
   puts "\nGet help by running:    ruby nagios-sip-plugin.rb -h\n"
+end
+
+def time_diff_milli(start, finish)
+   ((finish - start) * 1000.0).to_i
 end
 
 def log_ok(text)
@@ -264,6 +267,7 @@ end
 
 args = ARGV.join(" ")
 
+start_time = Time.now
 transport = args[/-t ([^\s]*)/,1] || "udp"
 server_address = args[/-s ([^\s]*)/,1] || nil
 server_port = args[/-p ([^\s]*)/,1] || 5060
@@ -298,9 +302,12 @@ begin
   })
   options.send
   status_code = options.receive
-  log_ok "status code = " + status_code
+  duration = time_diff_milli start_time, Time.now
+  log_ok "status code = #{status_code}|rta=#{duration}ms"
 rescue NonExpectedStatusCode => e
-  log_warning e.message
+  duration = time_diff_milli start_time, Time.now
+  log_warning "#{e.message}|rta=#{duration}ms"
 rescue TransportError, ConnectTimeout, RequestTimeout, ResponseTimeout, WrongResponse => e
-  log_critical e.message
+  duration = time_diff_milli start_time, Time.now
+  log_critical "#{e.message}|rta=#{duration}ms"
 end
