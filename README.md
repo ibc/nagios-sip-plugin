@@ -1,5 +1,4 @@
-nagios-sip-plugin
-=================
+# nagios-sip-plugin
 
 A plugin for [Nagios](http://www.nagios.org/) for checking the status of a SIP server.
 
