@@ -117,7 +117,7 @@ module NagiosSipPlugin
             else
               ssl_context.verify_mode = OpenSSL::SSL::VERIFY_NONE
             end
-            ssl_context.min_version = :TLS1_2
+            ssl_context.ssl_version = :SSLv23
 
             @io = OpenSSL::SSL::SSLSocket.new(sock, ssl_context)
             @io.sync_close = true
