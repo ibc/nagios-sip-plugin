@@ -1,17 +1,17 @@
 #!/usr/bin/env ruby
 
 #     Copyright (C) 2010  Iñaki Baz Castillo <ibc@aliax.net>
-# 
+#
 #     This program is free software; you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
 #     the Free Software Foundation; either version 2 of the License, or
 #     (at your option) any later version.
-# 
+#
 #     This program is distributed in the hope that it will be useful,
 #     but WITHOUT ANY WARRANTY; without even the implied warranty of
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #     GNU General Public License for more details.
-# 
+#
 #     You should have received a copy of the GNU General Public License
 #     along with this program; if not, write to the Free Software
 #     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -36,36 +36,36 @@ module NagiosSipPlugin
   class NonExpectedStatusCode < StandardError ; end
   class WrongResponse < StandardError ; end
 
-  
+
   class Utils
-  
+
     def self.random_string(length=6, chars="abcdefghjkmnpqrstuvwxyz0123456789")
       string = ''
       length.downto(1) { |i| string << chars[rand(chars.length - 1)] }
       string
     end
-    
+
     def self.generate_tag()
       random_string(8)
     end
-    
+
     def self.generate_branch()
       'z9hG4bK' + random_string(8)
     end
-    
+
     def self.generate_callid()
       random_string(10)
     end
-    
+
     def self.generate_cseq()
       rand(999)
     end
-    
+
   end  # class Utils
 
 
   class Request
-    
+
     def initialize(options = {})
       @server_address = options[:server_address]
       @server_port = options[:server_port]
@@ -79,7 +79,7 @@ module NagiosSipPlugin
       @ca_path = options[:ca_path]
       @verify_tls = options[:verify_tls]
     end
-    
+
     def get_local_ip
       orig, Socket.do_not_reverse_lookup = Socket.do_not_reverse_lookup, true
       UDPSocket.open do |s|
@@ -94,7 +94,7 @@ module NagiosSipPlugin
       end
     end
     private :get_local_ip
-    
+
     def connect
       begin
         case @transport
@@ -118,7 +118,7 @@ module NagiosSipPlugin
             else
               ssl_context.verify_mode = OpenSSL::SSL::VERIFY_NONE
             end
-            ssl_context.ssl_version = :TLSv1
+            ssl_context.min_version = :TLS1_2
 
             @io = OpenSSL::SSL::SSLSocket.new(sock, ssl_context)
             @io.sync_close = true
@@ -132,7 +132,7 @@ module NagiosSipPlugin
       end
     end
     private :connect
-    
+
     def send
       if ! connect
         return false
@@ -151,14 +151,14 @@ module NagiosSipPlugin
         raise TransportError, "Couldn't send the request via #{@transport.upcase} (#{e.class}: #{e.message}"
       end
     end
-    
+
   end  # class Request
-  
-  
+
+
   class OptionsRequest < Request
-    
+
     attr_reader :request
-    
+
     def get_request
       headers = <<-END_HEADERS
         OPTIONS #{@ruri} SIP/2.0
@@ -198,9 +198,9 @@ module NagiosSipPlugin
       return status_code
 
     end  # def receive
-  
+
   end  # class OptionsRequest
-  
+
 end  # module NagiosSipPlugin
 
 
@@ -222,7 +222,7 @@ Usage mode:    nagios-sip-plugin.rb [OPTIONS]
 
   Homepage:
     https://github.com/ibc/nagios-sip-plugin
-    
+
 END_HELP
 end
 
