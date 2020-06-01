@@ -25,7 +25,6 @@ rescue ::LoadError
   #puts "WARNING: Ruby OpenSSL non installed, cannot use SIP TLS transport"
 end
 
-
 module NagiosSipPlugin
 
   # Custom errors.
@@ -230,6 +229,10 @@ def suggest_help
   puts "\nGet help by running:    ruby nagios-sip-plugin.rb -h\n"
 end
 
+def time_diff_milli(start, finish)
+   ((finish - start) * 1000.0).to_i
+end
+
 def log_ok(text)
   $stdout.puts "OK:#{text}"
   exit 0
@@ -264,6 +267,7 @@ end
 
 args = ARGV.join(" ")
 
+start_time = Time.now
 transport = args[/-t ([^\s]*)/,1] || "udp"
 server_address = args[/-s ([^\s]*)/,1] || nil
 server_port = args[/-p ([^\s]*)/,1] || 5060
@@ -298,9 +302,12 @@ begin
   })
   options.send
   status_code = options.receive
-  log_ok "status code = " + status_code
+  duration = time_diff_milli start_time, Time.now
+  log_ok "status code = #{status_code}|rta=#{duration}ms"
 rescue NonExpectedStatusCode => e
-  log_warning e.message
+  duration = time_diff_milli start_time, Time.now
+  log_warning "#{e.message}|rta=#{duration}ms"
 rescue TransportError, ConnectTimeout, RequestTimeout, ResponseTimeout, WrongResponse => e
-  log_critical e.message
+  duration = time_diff_milli start_time, Time.now
+  log_critical "#{e.message}|rta=#{duration}ms"
 end

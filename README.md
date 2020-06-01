@@ -1,5 +1,4 @@
-nagios-sip-plugin
-=================
+# nagios-sip-plugin
 
 A plugin for [Nagios](http://www.nagios.org/) for checking the status of a SIP server.
 
@@ -13,7 +12,7 @@ A plugin for [Nagios](http://www.nagios.org/) for checking the status of a SIP s
 
 ## Documentation
 
-The plugin sends an OPTIONS and parses the response status code (or triggers a timeout error).
+The plugin sends an OPTIONS and parses the response status code (or triggers timeout error).
 
 
 ### Return values
